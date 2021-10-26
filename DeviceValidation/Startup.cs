@@ -1,3 +1,5 @@
+using AspNetCoreRateLimit;
+using DeviceValidation.RateLimitings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Http;
+using WebApiThrottle;
 
 namespace DeviceValidation
 {
@@ -32,6 +36,12 @@ namespace DeviceValidation
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DeviceValidation", Version = "v1" });
             });
+
+            services.AddOptions();
+            services.AddMemoryCache();
+            services.Configure<RateLimitOptions>(Configuration.GetSection("RateLimiting"));
+            services.AddInMemoryRateLimiting();
+            services.AddSingleton<IRateLimitConfiguration, CustomRateLimitConfiguration>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,6 +62,10 @@ namespace DeviceValidation
             {
                 endpoints.MapControllers();
             });
+
+
+
+            app.UseClientRateLimiting();
         }
     }
 }
